@@ -1,4 +1,4 @@
-import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from './components/AppShell';
 import { I18nProvider } from './i18n';
 import { ProgressProvider } from './providers/progress';
@@ -10,16 +10,12 @@ import { Playground } from './pages/Playground';
 import { ProgressPage } from './pages/Progress';
 import { Settings } from './pages/Settings';
 
-/**
- * Hash routing keeps the app deployable to any static host — GitHub Pages, a
- * university web space, a USB stick — without server-side rewrite rules.
- */
 export default function App() {
   return (
     <ThemeProvider>
       <I18nProvider>
         <ProgressProvider>
-          <HashRouter>
+          <BrowserRouter>
             <Routes>
               <Route element={<AppShell />}>
                 <Route index element={<Dashboard />} />
@@ -31,7 +27,7 @@ export default function App() {
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Route>
             </Routes>
-          </HashRouter>
+          </BrowserRouter>
         </ProgressProvider>
       </I18nProvider>
     </ThemeProvider>
