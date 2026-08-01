@@ -45,7 +45,7 @@ export function CodeEditor({
           {toolbar}
         </div>
       )}
-      <div className="relative flex font-mono text-[0.8125rem] leading-[1.65]">
+      <div className="relative flex overflow-x-auto font-mono text-[0.8125rem] leading-[1.65]">
         <div
           aria-hidden="true"
           className="select-none border-r border-white/8 py-3.5 pl-3.5 pr-2.5 text-right text-white/25"
@@ -65,7 +65,7 @@ export function CodeEditor({
           onChange={(event) => onChange?.(event.target.value)}
           rows={lineCount}
           className={cn(
-            'w-full resize-none bg-transparent py-3.5 pl-3.5 pr-4 text-code-fg',
+            'w-full resize-none whitespace-pre bg-transparent py-3.5 pl-3.5 pr-4 text-code-fg',
             'font-mono leading-[1.65] outline-none placeholder:text-white/25',
             readOnly && 'cursor-default',
           )}

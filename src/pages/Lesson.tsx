@@ -43,8 +43,9 @@ export function LessonPage() {
 
   const context = getLessonContext(lesson.id);
   const position = getLessonPosition(lesson.id);
-  const exercise = lesson.exercises[exerciseIndex];
-  const isLast = exerciseIndex === lesson.exercises.length - 1;
+  const safeIndex = Math.min(Math.max(0, exerciseIndex), Math.max(0, lesson.exercises.length - 1));
+  const exercise = lesson.exercises[safeIndex];
+  const isLast = safeIndex === lesson.exercises.length - 1;
 
   return (
     <div className="space-y-7">
