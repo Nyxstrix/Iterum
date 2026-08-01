@@ -49,7 +49,8 @@ export async function runPython(code: string, stdin?: string): Promise<RunResult
 
   // Replace input() rather than feeding stdin: the real builtin echoes its
   // prompt to stdout, which would pollute the output we compare against.
-  const stub = `import builtins\nbuiltins.input = lambda *args, **kwargs: ${JSON.stringify(stdin ?? '')}`;
+  const inputLines = JSON.stringify((stdin ?? '').split('\n'));
+  const stub = `import builtins\n_inputs = iter(${inputLines})\nbuiltins.input = lambda *args=(), **kwargs={}: next(_inputs, '')`;
 
   let namespace: PyProxyDict | null = null;
   try {

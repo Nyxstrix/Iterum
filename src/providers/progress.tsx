@@ -66,7 +66,8 @@ function computeLongestStreak(activeDays: string[]): number {
   let best = 1;
   let run = 1;
   for (let i = 1; i < sorted.length; i += 1) {
-    const previous = new Date(`${sorted[i - 1]}T00:00:00`);
+    const [y, m, d] = sorted[i - 1].split('-').map(Number);
+    const previous = new Date(y, m - 1, d);
     previous.setDate(previous.getDate() + 1);
     if (todayKey(previous) === sorted[i]) {
       run += 1;
@@ -139,12 +140,12 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<ProgressContextValue>(() => {
     const isExerciseDone = (id: string) => completedExercises.has(id);
-    const isLessonDone = (id: string) =>
-      completedLessons.has(id) ||
-      (allLessons
-        .find((lesson) => lesson.id === id)
-        ?.exercises.every((exercise) => completedExercises.has(exercise.id)) ??
-        false);
+    const isLessonDone = (id: string) => {
+      if (completedLessons.has(id)) return true;
+      const lesson = allLessons.find((l) => l.id === id);
+      if (!lesson || lesson.exercises.length === 0) return false;
+      return lesson.exercises.every((exercise) => completedExercises.has(exercise.id));
+    };
 
     const moduleProgress = (moduleId: string) => {
       const lessons = allLessons.filter((lesson) => getLessonContext(lesson.id)?.module.id === moduleId);
