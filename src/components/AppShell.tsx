@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
   BarChart3,
@@ -98,7 +98,14 @@ export function AppShell() {
 
   // Scroll to the top on route change — otherwise a deep lesson keeps the
   // previous page's scroll offset.
-  useEffect(() => window.scrollTo(0, 0), [location.pathname]);
+  //
+  // `behavior: 'instant'` is required: `html { scroll-behavior: smooth }` turns a
+  // plain scrollTo (and even a scrollTop assignment) into an animation, which the
+  // unmount/mount of the next route interrupts — leaving the new page scrolled
+  // partway down and looking blank. useLayoutEffect lands it before paint.
+  useLayoutEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [location.pathname]);
 
   return (
     <div className="min-h-screen bg-bg">
