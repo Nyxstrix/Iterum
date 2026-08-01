@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="./mark.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Iterum — an interactive platform for mastering Python, from language fundamentals to abstract data structures and algorithmic complexity."
+    />
+    <meta name="theme-color" content="#08080b" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)" />
+    <title>Iterum — Learn Python by iteration</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300..800;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+
+    <!-- Resolve theme + language before first paint to avoid a flash of the wrong theme. -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('iterum.theme');
+          var theme =
+            stored && stored !== 'system'
+              ? stored
+              : window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light';
+          document.documentElement.classList.toggle('dark', theme === 'dark');
+          document.documentElement.style.colorScheme = theme;
+          var lang = localStorage.getItem('iterum.lang');
+          if (lang) document.documentElement.lang = lang === 'pt' ? 'pt-PT' : 'en';
+        } catch (e) {}
+      })();
+    </script>
+    <script type="module" crossorigin src="./assets/index-bbGCVBFl.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-B53BUGDP.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
