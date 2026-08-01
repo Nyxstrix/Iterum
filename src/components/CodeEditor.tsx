@@ -48,7 +48,7 @@ export function CodeEditor({
       <div className="relative flex overflow-x-auto font-mono text-[0.8125rem] leading-[1.65]">
         <div
           aria-hidden="true"
-          className="select-none border-r border-white/8 py-3.5 pl-3.5 pr-2.5 text-right text-white/25"
+          className="sticky left-0 z-10 shrink-0 select-none border-r border-white/8 bg-code-bg py-3.5 pl-3.5 pr-2.5 text-right text-white/25"
         >
           {Array.from({ length: lineCount }, (_, index) => (
             <div key={index}>{index + 1}</div>
