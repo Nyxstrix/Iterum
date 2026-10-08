@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import { AppShell } from './components/AppShell';
 import { I18nProvider } from './i18n';
 import { ProgressProvider } from './providers/progress';
@@ -28,6 +29,7 @@ export default function App() {
               </Route>
             </Routes>
           </BrowserRouter>
+          <Analytics />
         </ProgressProvider>
       </I18nProvider>
     </ThemeProvider>
