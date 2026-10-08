@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "node scripts/build.mjs",
+    "build:iterum": "tsc -b && vite build",
+    "build:dnplay": "node scripts/build.mjs dnplay",
     "lint": "oxlint",
     "preview": "vite preview",
     "predeploy": "npm run build",

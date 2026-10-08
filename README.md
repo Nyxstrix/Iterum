@@ -1,5 +1,21 @@
 # Iterum
 
+> **Which site is live?** This repo holds two sites. The build currently ships
+> **DNPlay** (`sites/dnplay/`, a single static page). **Iterum** (everything in
+> `src/`) is fully intact and untouched.
+>
+> **Switch back to Iterum** — change `DEFAULT_SITE` to `'iterum'` in
+> `scripts/build.mjs`, or set `SITE=iterum` in the host's build environment. No
+> other change needed.
+>
+> ```bash
+> npm run build            # the default site
+> npm run build:iterum     # force Iterum
+> npm run build:dnplay     # force DNPlay
+> ```
+>
+> The git tag `iterum-v1` marks Iterum exactly as it shipped before the swap.
+
 **Learn Python by iteration** — an interactive platform covering a full two-semester
 CS curriculum, from your first `print` to AVL trees and Big-O analysis.
 

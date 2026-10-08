@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>DNPlay - AncestryDNA Result Displayer (2026 regions)</title>
+	<meta name="description" content="DNPlay">
+	<meta name="author" content="DNPlay">
+	
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+	<style>
+		.alert.alert-info {
+			text-align: center;
+		}
+
+		.alert.alert-info p {
+			margin: 0;
+		}
+
+		input, textarea, select {
+			text-align: center;
+		}
+		
+		#outputLink, #invalidBtn, #infoBtn {
+			width: 100%;
+		}
+		
+		.table {
+			width: auto;
+			margin: 0 auto;
+			color: #ffffff;
+			font-size: 26px;
+			line-height: 42px;
+			font-weight: 800;
+			border-collapse: collapse;
+			border-radius: 10px;
+			overflow: hidden;
+		}
+		
+		td {
+			padding: 0 15px;
+		}
+		
+		tbody td {
+			border-radius: 10px;
+		}
+		
+		tr:nth-child(odd) {
+			background-color: #6c757d;
+		}
+
+		tr:nth-child(even) {
+			background-color: #212529;
+		}
+	</style>
+</head>
+<body>
+  <div id="resultArea" class="container mt-3" style="display: none;">
+    <h2 class="text-center">Results</h2>
+	<div class="row justify-content-center mt-4">
+	  <div id="resultTable"></div>
+	</div>
+	<div class="text-center mt-3">
+	  <label><input type="checkbox" id="hideUnassigned"> Leave out "Unassigned" and rescale to 100%</label>
+	</div>
+  </div>
+  <div id="instructionToggle" class="container mt-3" style="display: none;">
+	<div class="row justify-content-center mt-4">
+	  <div class="col-md-6">
+	    <div class="alert alert-info">
+	      <button id="infoBtn" class="btn btn-info mb-2">Click To View Instructions</button>
+	    </div>
+	  </div>
+	</div>
+  </div>
+  <div id="instructionArea" class="container mt-3">
+    <h2 class="text-center">Instructions</h2>
+    <div class="row justify-content-center mt-4">
+      <div class="col-md-6">
+        <div class="alert alert-info">
+          <p><strong>Step 1:</strong> Go to <a href="https://www.ancestry.com/dna/insights/" target="_blank">ancestry.com/dna/insights/</a></p>
+		  <p style="color: gray">NOTE: Mobile users, be sure to open all links with your default browser, not an in-app browser.</p>
+		</div>
+		<div class="alert alert-info">
+		  <p><strong>Step 2:</strong> Copy your unique code from the end of the URL</p>
+		  <p style="color: gray">.../dna/insights/<span style="color: red;">YOUR-CODE</span></p>
+		</div>
+		<div class="alert alert-info">
+		  <p class="mb-2"><strong>Step 3:</strong> Paste your code here:</p>
+          <input type="text" id="codeInput" class="form-control mb-2" placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" oninput="validateCode()">
+		</div>
+		<div class="alert alert-info">
+		  <p class="mb-2"><strong>(Optional) Step 3.5:</strong> Select a year:</p>
+		  <select id="yearSelect" class="form-control mb-2" onchange="validateCode()">
+			<option value="2026" selected>2026</option>
+			<option value="2025">2025</option>
+			<option value="2024">2024</option>
+			<option value="2023">2023</option>
+			<option value="2022">2022</option>
+		  </select>
+		</div>
+		<div class="alert alert-info">
+		  <p class="mb-2"><strong>Step 4:</strong> Click the generated link below:</p>
+		  <div id="linkArea">
+			<a id="outputLink" class="btn btn-success btn-block mb-2" href="" target="_blank" style="display: none;">Click Me - Link Generated</a>
+			<button id="invalidBtn" class="btn btn-danger mb-2">Invalid Code - No Link Generated</button>
+		  </div>
+		</div>
+		<div class="alert alert-info">
+		  <p class="mb-2"><strong>Step 5:</strong> Paste the output here:</p>
+          <textarea id="outputArea" class="form-control" placeholder="Paste the output that came from visiting the generated link." style="resize: none;"></textarea>
+		</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+	const target = document.getElementById('outputArea');
+	target.addEventListener('input', function (event) {
+		target.value = '';
+	});
+	
+	const codeInput = document.getElementById('codeInput');
+	const yearSelect = document.getElementById('yearSelect');
+	const outputLink = document.getElementById('outputLink');
+	const invalidBtn = document.getElementById('invalidBtn');
+
+	const infoBtn = document.getElementById('infoBtn');
+	infoBtn.addEventListener('click', function (event) {
+		document.getElementById("instructionArea").style.display = "block";
+		document.getElementById("resultArea").style.display = "none";
+		document.getElementById("instructionToggle").style.display = "none";
+	});
+	
+	const ids = {
+		"2021_001": "Senegal",
+		"2021_002": "Mali",
+		"2021_003": "Ivory Coast & Ghana",
+		"2021_004": "Benin & Togo",
+		"2021_005": "Nigeria",
+		"2021_006": "Cameroon, Congo & Western Bantu Peoples",
+		"2021_007": "Southern Bantu Peoples",
+		"2021_008": "Eastern Bantu Peoples",
+		"2021_009": "Ethiopia & Eritrea",
+		"2021_010": "Somalia",
+		"2021_011": "Khoisan, Aka & Mbuti Peoples",
+		"2021_012": "Northern Africa",
+		"2021_013": "Egypt",
+		"2021_014": "Arabian Peninsula",
+		"2021_015": "Levant",
+		"2021_016": "Cyprus",
+		"2021_017": "Anatolia & the Caucasus",
+		"2021_018": "Iran/Persia",
+		"2021_019": "Burusho",
+		"2021_020": "Central Asia—South",
+		"2021_021": "Northern India",
+		"2021_022": "Southern India",
+		"2021_023": "Bengal",
+		"2021_024": "Northern Asia",
+		"2021_025": "Mongolia & Central Asia—North",
+		"2021_026": "Korea",
+		"2021_027": "Japan",
+		"2021_028": "Southern Japanese Islands",
+		"2021_029": "Northern China",
+		"2021_030": "Southern China",
+		"2021_031": "Dai",
+		"2021_032": "Southeast Asia",
+		"2021_033": "Vietnam",
+		"2021_034": "Northern Philippines",
+		"2021_035": "Southern Philippines",
+		"2021_036": "Guam",
+		"2021_037": "Melanesia",
+		"2021_038": "Aboriginal & Torres Strait Islander",
+		"2021_039": "Tonga",
+		"2021_040": "Samoa",
+		"2021_041": "Eastern Polynesia & New Zealand Maori",
+		"2021_042": "Indigenous Arctic",
+		"2021_043": "Indigenous Americas—North",
+		"2021_044": "Indigenous Americas—Mexico ",
+		"2021_045": "Indigenous Americas—Yucatan Peninsula ",
+		"2021_046": "Indigenous Americas—Central",
+		"2021_047": "Indigenous Americas—Panama & Costa Rica",
+		"2021_048": "Indigenous Cuba",
+		"2021_049": "Indigenous Haiti & Dominican Republic",
+		"2021_050": "Indigenous Puerto Rico",
+		"2021_051": "Indigenous Americas—Colombia & Venezuela",
+		"2021_052": "Indigenous Americas—Ecuador",
+		"2021_053": "Indigenous Americas—Bolivia & Peru",
+		"2021_054": "Indigenous Americas—Chile",
+		"2021_055": "Indigenous Eastern South America",
+		"2021_056": "European Jewish",
+		"2021_057": "Finland",
+		"2021_058": "Sweden & Denmark",
+		"2021_059": "Norway",
+		"2021_060": "Baltics",
+		"2021_061": "Eastern Europe & Russia",
+		"2021_062": "The Balkans",
+		"2021_063": "Greece & Albania",
+		"2021_064": "Aegean Islands",
+		"2021_065": "Malta",
+		"2021_066": "Sardinia",
+		"2021_067": "Southern Italy",
+		"2021_068": "Northern Italy",
+		"2021_069": "France",
+		"2021_070": "Germanic Europe",
+		"2021_071": "Basque",
+		"2021_072": "Spain",
+		"2021_073": "Portugal",
+		"2021_074": "England & Northwestern Europe",
+		"2021_075": "Wales",
+		"2021_076": "Scotland",
+		"2021_077": "Ireland",
+		"2022_001": "Senegal",
+		"2022_002": "Mali",
+		"2022_003": "Ivory Coast & Ghana",
+		"2022_004": "Benin & Togo",
+		"2022_005": "Nigeria",
+		"2022_006": "Nigeria—East Central",
+		"2022_007": "Cameroon, Congo & Western Bantu Peoples",
+		"2022_008": "Southern Bantu Peoples",
+		"2022_009": "Eastern Bantu Peoples",
+		"2022_010": "Nilotic Peoples",
+		"2022_011": "Ethiopia & Eritrea",
+		"2022_012": "Somalia",
+		"2022_013": "Khoisan, Aka & Mbuti Peoples",
+		"2022_014": "Northern Africa",
+		"2022_015": "Egypt",
+		"2022_016": "Arabian Peninsula",
+		"2022_017": "Levant",
+		"2022_018": "Cyprus",
+		"2022_019": "Anatolia & the Caucasus",
+		"2022_020": "Iran/Persia",
+		"2022_021": "Burusho",
+		"2022_022": "Central Asia—South",
+		"2022_023": "Northern India",
+		"2022_024": "Southern India",
+		"2022_025": "Bengal",
+		"2022_026": "Nepal & the Himalayan Foothills",
+		"2022_027": "Tibetan Peoples",
+		"2022_028": "Northern Asia",
+		"2022_029": "Mongolia & Central Asia—North",
+		"2022_030": "Korea",
+		"2022_031": "Japan",
+		"2022_032": "Southern Japanese Islands",
+		"2022_033": "Northern China",
+		"2022_034": "Southwestern China",
+		"2022_035": "Central & Eastern China",
+		"2022_036": "Southern China",
+		"2022_037": "Dai",
+		"2022_038": "Southeast Asia",
+		"2022_039": "Vietnam",
+		"2022_040": "Northern Philippines",
+		"2022_041": "Southern Philippines",
+		"2022_042": "Guam",
+		"2022_043": "Melanesia",
+		"2022_044": "Aboriginal & Torres Strait Islander",
+		"2022_045": "Tonga",
+		"2022_046": "Samoa",
+		"2022_047": "Hawaii",
+		"2022_048": "New Zealand Maori",
+		"2022_049": "Indigenous Arctic",
+		"2022_050": "Indigenous Americas—North",
+		"2022_051": "Indigenous Americas—Mexico ",
+		"2022_052": "Indigenous Americas—Yucatan Peninsula ",
+		"2022_053": "Indigenous Americas—Central",
+		"2022_054": "Indigenous Americas—Panama & Costa Rica",
+		"2022_055": "Indigenous Cuba",
+		"2022_056": "Indigenous Haiti & Dominican Republic",
+		"2022_057": "Indigenous Puerto Rico",
+		"2022_058": "Indigenous Americas—Colombia & Venezuela",
+		"2022_059": "Indigenous Americas—Ecuador",
+		"2022_060": "Indigenous Americas—Bolivia & Peru",
+		"2022_061": "Indigenous Americas—Chile",
+		"2022_062": "Indigenous Eastern South America",
+		"2022_063": "Jewish Peoples of Europe",
+		"2022_064": "Finland",
+		"2022_065": "Sweden & Denmark",
+		"2022_066": "Norway",
+		"2022_067": "Baltics",
+		"2022_068": "Eastern Europe & Russia",
+		"2022_069": "The Balkans",
+		"2022_070": "Greece & Albania",
+		"2022_071": "Aegean Islands",
+		"2022_072": "Malta",
+		"2022_073": "Sardinia",
+		"2022_074": "Southern Italy",
+		"2022_075": "Northern Italy",
+		"2022_076": "France",
+		"2022_077": "Germanic Europe",
+		"2022_078": "Basque",
+		"2022_079": "Spain",
+		"2022_080": "Portugal",
+		"2022_081": "England & Northwestern Europe",
+		"2022_082": "Wales",
+		"2022_083": "Scotland",
+		"2022_084": "Ireland",
+		"00100": "Senegal",
+		"00200": "Mali",
+		"00300": "Ivory Coast & Ghana",
+		"00400": "Benin & Togo",
+		"00401": "Benin & Togo",
+		"00402": "Yorubaland",
+		"00403": "Central West Africa",
+		"00500": "Nigeria",
+		"00501": "Central Nigeria",
+		"00502": "North-Central Nigeria",
+		"00503": "Nigeria",
+		"00600": "Nigeria—East Central",
+		"00700": "Cameroon, Congo & Western Bantu Peoples",
+		"00750": "Western Bantu Peoples",
+		"00760": "Twa",
+		"00800": "Southern Bantu Peoples",
+		"00900": "Eastern Bantu Peoples",
+		"01000": "Nilotic Peoples",
+		"01100": "Ethiopia & Eritrea",
+		"01200": "Somalia",
+		"01300": "Khoisan, Aka & Mbuti Peoples",
+		"01400": "Northern Africa",
+		"01500": "Egypt",
+		"01600": "Arabian Peninsula",
+		"01700": "Levant",
+		"01800": "Cyprus",
+		"01900": "Anatolia & the Caucasus",
+		"02000": "Iran/Persia",
+		"02100": "Burusho",
+		"02001": "Lower Central Asia",
+		"02002": "Northern Iraq & Northern Iran",
+		"02200": "Indo-Gangetic Plain",
+		"02300": "Northern India",
+		"02301": "Western Himalayas & the Hindu Kush",
+		"02302": "Gujarat",
+		"02303": "Gulf of Khambhat",
+		"02400": "Southern India",
+		"02401": "Southern India",
+	  	"02402": "Southwest India",
+		"02403": "The Deccan & the Gulf of Mannar",
+		"02500": "Bengal",
+		"02600": "Nepal & the Himalayan Foothills",
+		"02700": "Tibetan Peoples",
+		"02800": "Northern Asia",
+		"02900": "Mongolia & Central Asia—North",
+		"03000": "Korea",
+		"03100": "Japan",
+		"03200": "Southern Japanese Islands",
+		"03300": "Northern China",
+		"03350": "Western China",
+		"03400": "Southwestern China",
+		"03500": "Central & Eastern China",
+		"03600": "Southern China",
+		"03700": "Dai",
+		"03800": "Mainland Southeast Asia",
+		"03850": "Maritime Southeast Asia",
+		"03900": "Vietnam",
+		"04000": "Northern Philippines",
+		"04100": "Western Philippines",
+		"04150": "Central & Southern Philippines",
+		"04151": "Luzon",
+	  	"04152": "Western Visayas",
+		"04200": "Guam",
+		"04300": "Melanesia",
+		"04400": "Aboriginal & Torres Strait Islander",
+		"04500": "Tonga",
+		"04600": "Samoa",
+		"04700": "Hawaii",
+		"04800": "New Zealand Maori",
+		"04900": "Indigenous Arctic",
+		"05000": "Indigenous Americas—North",
+		"05100": "Indigenous Americas—Mexico ",
+		"05200": "Indigenous Americas—Yucatan Peninsula ",
+		"05300": "Indigenous Americas—Central",
+		"05400": "Indigenous Americas—Panama & Costa Rica",
+		"05500": "Indigenous Cuba",
+		"05600": "Indigenous Haiti & Dominican Republic",
+		"05700": "Indigenous Puerto Rico",
+		"05800": "Indigenous Americas—Colombia & Venezuela",
+		"05900": "Indigenous Americas—Ecuador",
+		"06000": "Indigenous Americas—Bolivia & Peru",
+		"06100": "Indigenous Americas—Chile",
+		"06200": "Indigenous Eastern South America",
+		"06300": "Ashkenazi Jews",
+		"06301": "Sephardic Jews",
+		"06302": "Ashkenazi Jews in Eastern Europe & Russia",
+		"06303": "Ashkenazi Jews in Central & Southeastern Europe",
+		"06350": "Sephardic Jews in the Eastern Mediterranean",
+		"06351": "Sephardic Jews in Northern Africa",
+		"06400": "Finland",
+		"06500": "Sweden",
+		"06501": "Denmark",
+		"06600": "Norway",
+		"06601": "Iceland",
+		"06700": "Baltics",
+		"06701": "Estonia & Latvia",
+		"06702": "Lithuania",
+		"06800": "Central & Eastern Europe",
+		"06801": "Russia",
+		"06810": "Western Ukraine",
+		"06820": "Slovakia",
+		"06830": "Eastern Czechia",
+		"06840": "Northeastern Poland",
+		"06841": "North Central Europe",
+		"06842": "Southern Poland",
+		"06900": "The Balkans",
+		"06901": "Western Balkans",
+		"06910": "Northwestern Balkans",
+		"06920": "Slovenia",
+		"06930": "Romania",
+		"06940": "Southwestern Balkans",
+		"06950": "Eastern European Roma",
+		"07000": "Greece & Albania",
+		"07001": "Albania",
+		"07050": "Northern & Central Greece",
+		"07051": "Southern Greece",
+		"07100": "Aegean Islands",
+		"07101": "Aegean Islands",
+		"07102": "Crete",
+		"07103": "Ionian Islands",
+		"07200": "Malta",
+		"07300": "Sardinia",
+		"07400": "Southern Italy",
+		"07401": "Sicily",
+		"07402": "Central Italy",
+		"07403": "Southern Italy",
+		"07500": "Northern Italy",
+		"07501": "Northeastern Italy",
+		"07502": "Northwestern Italy",
+		"07600": "France",
+		"07601": "France",
+		"07602": "Brittany, France",
+		"07650": "Acadia",
+		"07651": "Quebec",
+		"07700": "Germanic Europe",
+		"07750": "Germans in Russia",
+		"07751": "Northwestern Germany",
+		"07752": "Southern Germanic Europe",
+		"07701": "The Netherlands",
+		"07800": "Basque",
+		"07900": "Spain",
+		"07901": "Northern Spain",
+		"07902": "Canary Islands",
+		"07903": "Spain",
+		"08000": "Portugal",
+		"08001": "Azores",
+		"08002": "Madeira",
+		"08100": "England & Northwestern Europe",
+		"08101": "Cornwall",
+		"08102": "Devon & Somerset",
+		"08103": "North East England",
+		"08104": "Northern Wales & North West England",
+		"08105": "Southeastern England & Northwestern Europe",
+		"08106": "East Midlands",
+		"08107": "West Midlands",
+		"08150": "Isle of Man",
+		"08200": "Wales",
+		"08201": "Southern Wales",
+		"08300": "Scotland",
+		"08301": "Hebrides & Western Highlands, Scotland",
+		"08302": "North East Scotland",
+		"08400": "Ireland",
+		"08401": "Munster, Ireland",
+		"08402": "Connacht, Ireland",
+		"08403": "Donegal, Ireland",
+		"08404": "Leinster, Ireland"
+	};
+
+	const ids2026 = {
+		"00105": "Senegal",
+		"00115": "Southern Senegal & Guinea-Bissau",
+		"00125": "Hausa & Fulani Peoples",
+		"00135": "Liberia",
+		"00145": "Sierra Leone",
+		"00205": "Ivory Coast & Southwestern Mali",
+		"00215": "Mali—Mandé Peoples",
+		"00225": "Mali—Dogon Peoples",
+		"00305": "Ghana & Western Togo",
+		"00405": "Benin—Eastern Gbe Peoples",
+		"00415": "Benin",
+		"00425": "Southern Benin—Yoruba Peoples",
+		"00435": "Benin—Western Gbe Peoples",
+		"00505": "Central Nigeria—Tiv People",
+		"00515": "Nigeria—Jos Plateau",
+		"00525": "Nigeria—Middle Belt",
+		"00535": "Southern Kaduna & Central Nigeria Plateau",
+		"00545": "Central Nigeria—Gbagyi People",
+		"00555": "Central Nigeria—Migili People",
+		"00565": "Yorubaland",
+		"00575": "Igboland",
+		"00705": "Southwestern Cameroon",
+		"00710": "Cameroon—Nso & Highland Peoples",
+		"00715": "Cameroon—Ring Kingdom Peoples",
+		"00720": "Cameroon—Widikum Peoples",
+		"00725": "Cameroon—Bamenda Highlands Peoples",
+		"00730": "Cameroon—Bamileke Plateau",
+		"00735": "Cameroon—Bangwa & Bamileke Peoples",
+		"00752": "Western Bantu & Forest Peoples",
+		"00754": "DRC—Luba Peoples",
+		"00761": "Uganda Batwa",
+		"00801": "Southern Bantu Peoples",
+		"00850": "Zimbabwe",
+		"00875": "Burundi & Rwanda",
+		"00905": "Uganda—Central Sudanic Peoples",
+		"00915": "Western Nilotic Peoples",
+		"01005": "Kenya—Eastern Nilotic Peoples",
+		"01015": "Kenya & Uganda—Eastern Bantu Peoples",
+		"01101": "Ethiopia",
+		"01150": "Eritrea",
+		"01205": "Somalia—Equatorial Coast",
+		"01215": "Horn of Africa",
+		"01405": "Atlantic Sahara",
+		"01415": "Northern Morocco & Mediterranean Coast",
+		"01425": "Central & Eastern Maghreb",
+		"01435": "Northern Saharan Oases",
+		"01505": "Upper Egypt",
+		"01515": "Middle Egypt",
+		"01525": "Egypt",
+		"01550": "Sudan",
+		"01605": "Arabian Peninsula",
+		"01705": "Lebanon",
+		"01715": "Southern Levant",
+		"01725": "Jordan Valley & West Bank",
+		"01735": "Middle Euphrates",
+		"01745": "Lebanon & Northern Syria",
+		"01755": "Northern Levant",
+		"01765": "Lebanon & Southern Syria",
+		"01800": "Cyprus",
+		"01905": "Armenia",
+		"01915": "Eastern Anatolia Armenians",
+		"01925": "Cilicia Armenians",
+		"01935": "Central Turkey",
+		"01945": "Eastern Turkey",
+		"01955": "Southeastern Turkey",
+		"01965": "South Caucasus",
+		"01975": "Georgia",
+		"01985": "Western Turkey",
+		"01995": "Northern Turkey",
+		"02005": "Eastern Mizrahi",
+		"02006": "Western Mizrahi",
+		"02010": "Northern Iraq & Iran—Assyrian Peoples",
+		"02020": "Northern Iraq",
+		"02030": "Southern Iraq",
+		"02040": "Central Iran",
+		"02050": "Armenians in Iran",
+		"02060": "Iranian Azerbaijan",
+		"02070": "Southern Iran",
+		"02080": "Iran",
+		"02205": "Northern Punjab",
+		"02215": "Northeastern Punjab",
+		"02225": "Central Punjab",
+		"02235": "Khyber Pakhtunkhwa & Gilgit-Baltistan",
+		"02245": "Northern India & Pakistan",
+		"02255": "Western Kashmir",
+		"02265": "Pashtunkhwa",
+		"02275": "Western Punjab",
+		"02285": "Punjab & Sindh",
+		"02295": "Sindh",
+		"02305": "Hazara",
+		"02350": "Eastern Punjab",
+		"02355": "Kashmir & Punjab Foothills",
+		"02360": "Northwestern India",
+		"02365": "Rajasthan & Gujarat, India",
+		"02404": "Andhra Pradesh",
+		"02408": "Coastal Karnataka",
+		"02412": "Gujarat",
+		"02416": "Parsis",
+		"02420": "South Gujarat",
+		"02424": "Gulf of Khambhat",
+		"02428": "Tamil Nadu—Iyengar",
+		"02432": "Jammu & Kashmir",
+		"02436": "Tamil Nadu",
+		"02440": "Goa",
+		"02444": "Andhra Pradesh & Southern Karnataka",
+		"02448": "Kerala",
+		"02452": "Central Kerala",
+		"02456": "Gujarat—Darji",
+		"02460": "Maharashtra",
+		"02464": "Mumbai",
+		"02468": "Uttar Pradesh & Bihar",
+		"02472": "Telangana & Andhra Pradesh",
+		"02476": "Kerala—Varghese",
+		"02480": "West Bengal & Northern India",
+		"02490": "Sri Lanka",
+		"02494": "Indian Ocean—Tamil",
+		"02505": "Bengal",
+		"02515": "Northeastern Bangladesh & Assam",
+		"02605": "Nepal & the Himalayan Foothills",
+		"02650": "Bhutan",
+		"02705": "Central & Eastern Nepal",
+		"02805": "Indigenous Siberia",
+		"02905": "Northwestern Mongolia",
+		"02915": "Northern Mongolia & Southern Siberia—Buryat",
+		"02925": "Western Mongolia",
+		"02935": "Kyrgyzstan",
+		"02945": "Central Asia",
+		"02955": "Central Mongolia",
+		"02965": "Northwestern Mongolia & Siberia—Turkic Peoples",
+		"03000": "Korea",
+		"03105": "Japan",
+		"03115": "Chūgoku Chihō, Japan",
+		"03200": "Southern Japanese Islands",
+		"03305": "Eastern & Northeastern China",
+		"03355": "Northern China",
+		"03405": "Southwestern China",
+		"03505": "Taiwan & Southeastern China",
+		"03515": "Central China",
+		"03605": "Pearl River & Lingnan Coast",
+		"03615": "Guangdong, China",
+		"03705": "Tai Peoples",
+		"03750": "Cambodia",
+		"03805": "Myanmar",
+		"03815": "Mainland Southeast Asia—Hmong People",
+		"03825": "Mainland Southeast Asia—Iu Mien People",
+		"03855": "Maritime Southeast Asia",
+		"03905": "Central & Southern Vietnam",
+		"03925": "Northern Vietnam",
+		"04005": "Northern Luzon",
+		"04015": "Southern Luzon",
+		"04025": "Central Luzon",
+		"04035": "Bicol",
+		"04160": "Western Visayas",
+		"04165": "Central Visayas",
+		"04170": "Visayas & Mindanao",
+		"04175": "Eastern Visayas",
+		"04200": "Guam",
+		"04305": "Fiji",
+		"04315": "Papua",
+		"04325": "Vanuatu",
+		"04335": "Eastern Melanesia",
+		"04345": "Western Melanesia",
+		"04400": "Aboriginal and/or Torres Strait Islander Peoples",
+		"04500": "Tonga",
+		"04600": "Samoa",
+		"04700": "Hawai‘i",
+		"04750": "Tahiti",
+		"04800": "New Zealand Māori",
+		"04905": "Alaska-Yukon (Canada & USA)",
+		"05005": "Northern Prairies & Great Lakes (Canada & USA)",
+		"05015": "Atlantic Northeast (Canada & USA)",
+		"05025": "Great Plains (USA)",
+		"05035": "North Pacific Coast (Canada & USA)",
+		"05045": "Gulf Coast & Mississippi Basin (USA)",
+		"05055": "Colorado Plateau (USA)",
+		"05103": "Centro-Occidente—Norte (Mexico)",
+		"05106": "Baja California Peninsula (Mexico)",
+		"05109": "Chihuahuan Desert & Sierras (Mexico)",
+		"05112": "Centro-Occidente—Sur (Mexico)",
+		"05115": "Western Sierra Madre Highlands (Mexico)",
+		"05118": "Eastern Sierra Madre & Gulf Coast (Mexico)",
+		"05121": "Centro-Oriente Highlands (Mexico)",
+		"05124": "El Bajío (Mexico)",
+		"05127": "Jalisco Highlands (Mexico)",
+		"05130": "Noreste & Rio Grande (Mexico & USA)",
+		"05133": "Huasteca & Gulf Lowlands (Mexico)",
+		"05136": "Gulf of California (Mexico)",
+		"05139": "Sonoran Desert & Gulf Coast (Mexico & USA)",
+		"05142": "Southern Sierra & Tehuantepec (Mexico)",
+		"05175": "Southern Rockies & Upper Rio Grande (USA)",
+		"05178": "Northern Rio Grande Basin (USA)",
+		"05205": "Yucatán & Petén Basin (Mexico)",
+		"05305": "Coastal Belize",
+		"05320": "Nicaragua",
+		"05340": "Honduran Highlands & Caribbean Coast",
+		"05345": "Lenca Heartland & Pacific Slopes (Honduras & El Salvador)",
+		"05360": "Mayan Highlands (Guatemala)",
+		"05380": "Cuzcatlán (El Salvador)",
+		"05405": "Talamanca Highlands & Nicoya Coastlands",
+		"05450": "Isthmus of Panama",
+		"05500": "Cubanacán (Cuba)",
+		"05600": "Quisqueya (Dominican Republic)",
+		"05700": "Borikén (Puerto Rico)",
+		"05805": "North Andean Coast (Colombia)",
+		"05815": "High Andean Heartland (Colombia)",
+		"05825": "The Pacific Chocó (Colombia)",
+		"05850": "Coastal Cordillera & Sistema Coriano (Venezuela)",
+		"05855": "Orinoco Delta (Venezuela)",
+		"05860": "Maracaibo Basin (Venezuela)",
+		"05900": "Equatorial Andes & Pacific Coast (Ecuador)",
+		"06005": "Central Andean Altiplano (Peru)",
+		"06015": "Northern Andean Slopes (Peru)",
+		"06060": "Altiplano & Gran Chaco (Bolivia)",
+		"06100": "Southern Andean Coast (Chile)",
+		"06205": "Pampas & Patagonia (Argentina)",
+		"06210": "Río de la Plata Basin (Argentina & Uruguay)",
+		"06250": "Mata Atlântica (Brazil)",
+		"06255": "Sertão & Amazon Basin (Brazil)",
+		"06260": "Atlantic Pampas & Highlands (Brazil & Uruguay)",
+		"06280": "Gran Chaco (Paraguay)",
+		"06302": "Ashkenazi Jews in Eastern Europe & Russia",
+		"06303": "Ashkenazi Jews in Central & Southeastern Europe",
+		"06350": "Sephardic Jews in the Eastern Mediterranean",
+		"06351": "Sephardic Jews in Northern Africa",
+		"06400": "Finland",
+		"06500": "Sweden",
+		"06501": "Denmark",
+		"06600": "Norway",
+		"06601": "Iceland",
+		"06701": "Estonia & Latvia",
+		"06702": "Lithuania",
+		"06801": "Russia",
+		"06808": "East-Central European Lowlands",
+		"06810": "Western Ukraine",
+		"06822": "Western Carpathian Basin",
+		"06824": "Eastern Slovakia",
+		"06826": "Carpathian Basin & Uplands",
+		"06830": "Eastern Czechia",
+		"06842": "Southern Poland",
+		"06844": "Lesser Poland",
+		"06846": "Northern Poland",
+		"06848": "Central & Eastern Poland",
+		"06912": "Northwestern Croatia & Istria",
+		"06914": "Central Croatia",
+		"06916": "Western Balkans & Sava Plains",
+		"06918": "Central Balkans",
+		"06919": "Dalmatia",
+		"06920": "Slovenia",
+		"06930": "Romania",
+		"06940": "Southwestern Balkans",
+		"06950": "Eastern European Roma",
+		"06990": "Bulgaria",
+		"07001": "Albania",
+		"07050": "Northern & Central Greece",
+		"07051": "Southern Greece",
+		"07070": "Pontian Greeks",
+		"07101": "Aegean Islands",
+		"07102": "Crete",
+		"07103": "Ionian Islands",
+		"07200": "Malta",
+		"07300": "Sardinia",
+		"07401": "Sicily",
+		"07402": "Central Italy",
+		"07403": "Southern Italy",
+		"07501": "Northeastern Italy",
+		"07502": "Northwestern Italy",
+		"07601": "France",
+		"07602": "Brittany",
+		"07620": "Belgium",
+		"07650": "Acadia",
+		"07651": "Quebec",
+		"07701": "The Netherlands",
+		"07750": "Germans in Russia",
+		"07751": "Northwestern Germany",
+		"07752": "Bavaria & Western Austria",
+		"07753": "Switzerland",
+		"07754": "Northeastern Germany",
+		"07755": "Western Czechia",
+		"07800": "Basque",
+		"07901": "Northern Spain",
+		"07902": "Canary Islands",
+		"07903": "Spain",
+		"08000": "Portugal",
+		"08001": "Azores",
+		"08002": "Madeira",
+		"08101": "Cornwall",
+		"08102": "Devon & Somerset",
+		"08103": "Northern England",
+		"08104": "Northern Wales & North West England",
+		"08105": "Southeastern England",
+		"08106": "East Midlands & Yorkshire",
+		"08107": "West Midlands",
+		"08150": "Isle of Man",
+		"08201": "Southern Wales",
+		"08301": "Hebrides & Western Highlands, Scotland",
+		"08302": "North East Scotland",
+		"08305": "Ulster, Ireland",
+		"08310": "Scottish Lowlands & Central Belt",
+		"08401": "Munster, Ireland",
+		"08402": "Connacht, Ireland",
+		"08403": "Donegal, Ireland",
+		"08404": "Leinster, Ireland"
+	};
+
+    function validateCode() {
+		const code = codeInput.value;
+		const codeRegex = /^[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}$/;
+		if (codeRegex.test(code)) {
+			generateLink(code);
+			outputLink.style.display = "inline-block";
+			outputLink.classList.remove("btn-danger");
+			outputLink.classList.add("btn-success");
+			invalidBtn.style.display = "none";
+		} else {
+			outputLink.style.display = "none";
+			invalidBtn.style.display = "inline-block";
+			invalidBtn.classList.remove("btn-success");
+			invalidBtn.classList.add("btn-danger");
+		}
+    }
+
+    function generateLink() {
+		const code = codeInput.value;
+		const year = yearSelect.value;
+		const generatedLink = "https://www.ancestry.com/dna/origins/inheritance/api/v1/ethnicities/" + code + "/chromosomes?version=" + year;
+		outputLink.href = generatedLink;
+    }
+
+	target.addEventListener('paste', (event) => {
+		event.preventDefault();
+
+		let pasted_string = (event.clipboardData || window.clipboardData).getData('text');
+
+		// some people had newlines in their pasted strings, so remove any newlines.
+		pasted_string = pasted_string.replace(/[\n\r]/g, '');
+
+		// some people reported getting slightly different json, so search for the relevant
+		// parts only to parse.
+		let pos1 = pasted_string.search('"parent1');
+		let pos2 = pasted_string.search('phaseFlips');
+
+		for (let i = pos1-1; i >= 0; --i) {
+			if (pasted_string[i] == '{') {
+				pos1 = i;
+				break;
+			}		
+		}
+
+		for (let i = pos2; i >= 0; --i) {
+			if (pasted_string[i] == ',') {
+				pos2 = i;
+				break;
+			}
+		}
+
+		if (pos1 == -1 || pos2 == -1) {
+			alert("Invalid input! Make sure you're copying and pasting the right thing!");
+			return;
+		}
+
+		// some people provided data showing no escape characters, so adding them
+		// if they don't exist to avoid errors.
+		pasted_string = pasted_string.substr(pos1, pos2-pos1);
+		if (pasted_string.search('\\\\') == -1) {
+			pasted_string = pasted_string.replaceAll('"', '\\"');
+		}
+
+		try {
+			const json_data = JSON.parse('{"data":"' + pasted_string + '}"}');	
+			const chromosomeData = JSON.parse(json_data['data']);
+
+			let result = {}
+				
+			let total_length = 0;
+
+			for (let i = 1; i <= 2; ++i) {
+				for (let j = 1; j <= 22; ++j) {
+					const data = chromosomeData['parent' + i.toString()][j.toString()];
+					for (const segment in data) {
+						const region = data[segment]['region'];
+						const length = data[segment]['windows'][1] - data[segment]['windows'][0];
+						total_length += length;
+						if (region in result) {
+							result[region] += parseInt(length);
+						} else {
+							result[region] = parseInt(length);
+						}
+					}
+				}
+			}
+			
+			lastResult = result;
+			lastYear = yearSelect.value;
+			renderResult();
+			document.getElementById("instructionArea").style.display = "none";
+			document.getElementById("resultArea").style.display = "block";
+			document.getElementById("instructionToggle").style.display = "block";
+		} catch {
+			alert("Could not read the pasted JSON. Make sure you're copying and pasting the right thing...");
+			return;
+		}
+	});
+
+	let lastResult = null;
+	let lastYear = null;
+	document.getElementById('hideUnassigned').addEventListener('change', renderResult);
+
+	function regionName(key) {
+		return (lastYear === '2026' && ids2026[key]) || ids[key] || key;
+	}
+
+	function renderResult() {
+		if (!lastResult) return;
+		const hide = document.getElementById('hideUnassigned').checked;
+		const result = {};
+		for (const k in lastResult) {
+			if (hide && /^unassigned$/i.test(k)) continue;
+			result[k] = lastResult[k];
+		}
+		const total_length = Object.values(result).reduce((a, b) => a + b, 0);
+		{
+			let sorted_result = Object.keys(result).map(function(key) {
+				return [key, result[key]];
+			});
+
+			sorted_result.sort(function(first, second) {
+				return second[1] - first[1];
+			});
+
+			let new_table = document.createElement('table');
+			new_table.className = 'table';
+
+			for (const i in sorted_result) {
+				let tr = document.createElement('tr');
+				let td = document.createElement('td');
+				
+				const pop_key = sorted_result[i][0];
+				td.appendChild(document.createTextNode(regionName(pop_key)));
+				tr.appendChild(td);
+
+				td = document.createElement('td');
+				td.appendChild(document.createTextNode((100*(sorted_result[i][1]/total_length)).toFixed(2) + ' %'));
+				tr.appendChild(td);
+				
+				new_table.appendChild(tr);
+			}
+
+			let results_area = document.getElementById('resultTable');
+			results_area.innerHTML = '';
+			results_area.appendChild(new_table);
+		}
+	}
+	
+	validateCode();
+  </script>
+</body>
+</html>
